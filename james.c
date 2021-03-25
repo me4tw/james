@@ -8,7 +8,10 @@ available commands.
 
 This source code should build on all ANSI C89 environments,
 but to help with possible issues in parallel makefiles, we
-use file locking, and on POSIX it is fcntl file locking.
+use file locking, and on POSIX it is fcntl() file locking.
+You may need to add your own file locking lock() and
+unlock() functions which may simply do nothing if you will
+run the tool serially, not in parallel.
 
 #Mechanical Usage Scenario(s)
 Build and run the james tool locally, should be as simple
@@ -17,16 +20,16 @@ work without errors. Otherwise it can be run as automatic
 on the repo, or some automated client that continously
 syncs, runs, resyncs on the repo. That way you could sync
 source code changes, and moments later sync again to pull
-down the resultant james.h without needing to be able to
+down the resultant "james.h" without needing to be able to
 run the tool locally.
 
 ##Step 1
 Delete "./include/james.h"
 
 ##Step 2
-run  "./james include/james.h src/main.c"   and so on for
+Run "./james include/james.h src/main.c" and so on for
 all source files. Each time "./james" executable runs, it
-will read the "include/james.h" file, laoding into ram all
+will read the "include/james.h" file, loading into RAM all
 data it finds, then it will process the "src/main.c" file,
 or whichever src file it is being run on this time, and will
 add to ram the things it finds. then it will re-generate the
@@ -2384,6 +2387,10 @@ int main(int argc, char** argv){
 		second_subret = parse_src(j, s, src_c_filename);
 		if (second_subret != 0) {
 			fprintf(j,"\n/* (while processing file %s) */\n", src_c);
+			printf( "\n/* (while processing file %s) */\n", src_c);
+			unlock();
+			/*--don't want to return 0, so that build system knows problem--*/
+			return second_subret;
 		}
 	}
 	
